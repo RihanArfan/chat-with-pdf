@@ -7,29 +7,42 @@ export default defineNuxtConfig({
   // https://nuxt.com/modules
   modules: [
     '@nuxthub/core',
-    '@nuxt/eslint'
+    '@nuxt/eslint',
+    '@nuxt/ui',
+    '@nuxtjs/mdc',
+    '@vueuse/nuxt',
   ],
 
   // https://hub.nuxt.com/docs/getting-started/installation#options
-  hub: {},
+  hub: {
+    ai: true,
+    blob: true,
+    cache: true,
+    database: true,
+    kv: true,
+    vectorize: {
+      documents: {
+        dimensions: 1024,
+        metric: 'euclidean',
+      },
+    },
+  },
 
-  // Env variables - https://nuxt.com/docs/getting-started/configuration#environment-variables-and-private-tokens
-  runtimeConfig: {
-    public: {
-      // Can be overridden by NUXT_PUBLIC_HELLO_TEXT environment variable
-      helloText: 'Hello from the Edge 👋'
-    }
+  nitro: {
+    experimental: {
+      openAPI: true,
+    },
   },
 
   // https://eslint.nuxt.com
   eslint: {
     config: {
       stylistic: {
-        quotes: 'single'
-      }
-    }
+        quotes: 'single',
+      },
+    },
   },
 
   // https://devtools.nuxt.com
-  devtools: { enabled: true }
+  devtools: { enabled: true },
 })
