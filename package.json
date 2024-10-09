@@ -13,23 +13,25 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@langchain/textsplitters": "^0.1.0",
     "@nuxt/eslint": "^0.5.7",
-    "@nuxt/ui": "^2.18.6",
-    "@nuxthub/core": "https://pkg.pr.new/nuxt-hub/core/@nuxthub/core@ad3098e",
+    "@nuxt/ui": "3.0.0-alpha.5",
+    "@nuxthub/core": "^0.7.26",
     "@nuxtjs/mdc": "^0.9.0",
-    "drizzle-orm": "^0.33.0",
+    "drizzle-orm": "^0.34.1",
     "nuxt": "^3.13.2",
-    "vue": "^3.5.6",
+    "unpdf": "^0.12.1",
+    "vue": "^3.5.11",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^0.5.7",
     "@vueuse/core": "^11.1.0",
     "@vueuse/nuxt": "^11.1.0",
-    "drizzle-kit": "^0.24.2",
-    "eslint": "^9.10.0",
+    "drizzle-kit": "^0.25.0",
+    "eslint": "^9.12.0",
     "vue-tsc": "^2.1.6",
-    "wrangler": "^3.78.3"
+    "wrangler": "^3.80.1"
   },
   "packageManager": "pnpm@9.10.0"
 }
