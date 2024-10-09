@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxtjs/mdc',
     '@vueuse/nuxt',
+    'nuxthub-ratelimit',
   ],
 
   // https://hub.nuxt.com/docs/getting-started/installation#options
@@ -27,6 +28,15 @@ export default defineNuxtConfig({
         metadataIndexes: {
           session_id: 'string',
         },
+      },
+    },
+  },
+
+  nuxtHubRateLimit: {
+    routes: {
+      '/api/*': {
+        maxRequests: 20,
+        intervalSeconds: 60,
       },
     },
   },
