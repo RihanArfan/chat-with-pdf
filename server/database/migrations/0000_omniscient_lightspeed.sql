@@ -5,6 +5,7 @@ CREATE TABLE `document_chunks` (
 	`session_id` text,
 	FOREIGN KEY (`document_id`) REFERENCES `documents`(`id`) ON UPDATE no action ON DELETE cascade
 );
+
 --> statement-breakpoint
 CREATE TABLE `documents` (
 	`id` text PRIMARY KEY NOT NULL,
@@ -14,6 +15,7 @@ CREATE TABLE `documents` (
 	`session_id` text,
 	`r2_url` text
 );
+
 --> statement-breakpoint
 CREATE VIRTUAL TABLE document_chunks_fts USING fts5(
 	id UNINDEXED,
@@ -23,6 +25,7 @@ CREATE VIRTUAL TABLE document_chunks_fts USING fts5(
 	content = 'document_chunks'
 );
 
+--> statement-breakpoint
 CREATE TRIGGER document_chunks_ai
 AFTER INSERT
 	ON document_chunks BEGIN
