@@ -5,10 +5,14 @@ const sessionId = useState<string>('sessionId', () => crypto.randomUUID())
 const informativeMessage = useInformativeMessage()
 const messages = useMessages()
 const documents = useDocuments()
+const queries = useQueries()
+const relevantContext = useRelevantContext()
 const isDrawerOpen = ref(false)
 
 async function sendMessage(message: string) {
   messages.value.push({ role: 'user', content: message })
+  relevantContext.value.isProvided = false
+  relevantContext.value.context = []
 
   const response = useStream<QueryStreamResponse>('/api/query', { messages: messages.value, sessionId: sessionId.value })()
 
@@ -16,7 +20,15 @@ async function sendMessage(message: string) {
   for await (const chunk of response) {
     if (chunk.message) {
       informativeMessage.value = chunk.message
-      continue
+    }
+
+    if (chunk.queries) {
+      queries.value = chunk.queries
+    }
+
+    if (chunk.relevantContext) {
+      relevantContext.value.context = chunk.relevantContext
+      relevantContext.value.isProvided = true
     }
 
     if (chunk.response) {
@@ -41,12 +53,14 @@ const isChatEnabled = computed(() => informativeMessage.value === '' && !!docume
 
 <template>
   <div class="h-dvh flex flex-col md:flex-row max-h-dvh">
-    <!-- <USlideover
-      v-model="isDrawerOpen"
+    <USlideover
+      v-model:open="isDrawerOpen"
       :ui="{ content: 'md:hidden' }"
     >
-      <SideBar @hide-drawer="isDrawerOpen = false" />
-    </USlideover> -->
+      <template #content>
+        <SideBar @hide-drawer="isDrawerOpen = false" />
+      </template>
+    </USlideover>
 
     <div class="hidden md:block max-w-xs w-full">
       <SideBar />
@@ -65,7 +79,6 @@ const isChatEnabled = computed(() => informativeMessage.value === '' && !!docume
           <ChatInput class="w-full absolute bottom-0 inset-x-0" :loading="!isChatEnabled" @message="sendMessage" />
         </UContainer>
       </div>
-      <UContainer class="max-w-3xl w-full absolute bottom-0 inset-x-0" />
     </div>
   </div>
 </template>

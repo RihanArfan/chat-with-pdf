@@ -5,6 +5,8 @@ defineProps<{ messages: RoleScopedChatInput[] }>()
 
 
 const informativeMessage = useInformativeMessage()
+const relevantContext = useRelevantContext()
+const queries = useQueries()
 </script>
 
 <template>
@@ -20,12 +22,46 @@ const informativeMessage = useInformativeMessage()
       <AssistantMessage v-else :content="message.content" class="px-1" />
     </template>
 
-    <div v-if="informativeMessage !== ''" class="flex gap-1.5 items-center px-3">
+    <!-- Progress message -->
+    <div v-if="informativeMessage !== ''" class="flex gap-1.5 items-center px-3 pt-2 pb-1">
       <LoadingIcon class="size-4" />
       <p class="text-sm text-gray-500">
         {{ informativeMessage }}
       </p>
     </div>
 
+    <!-- See relevant context -->
+    <USlideover title="Query information">
+      <div v-show="relevantContext.isProvided">
+        <UButton color="neutral" variant="outline" class="inline-l">
+          See relevant context
+        </UButton>
+      </div>
+
+      <template #body>
+        <h2 class="font-semibold text-lg mb-1">
+          Queries to vector database
+        </h2>
+        <ul class="list-disc pl-4">
+          <li v-for="(context, i) in queries" :key="i">
+            {{ context }}
+          </li>
+        </ul>
+
+        <h2 class="font-semibold text-lg mb-1 mt-6">
+          Relevant context fetched from documents
+        </h2>
+
+        <ul class="list-disc pl-4">
+          <li v-for="(context, i) in relevantContext.context" :key="i">
+            <AssistantMessage :content="context" />
+          </li>
+        </ul>
+
+        <p v-if="!relevantContext.context.length">
+          No relevant context
+        </p>
+      </template>
+    </USlideover>
   </div>
 </template>
