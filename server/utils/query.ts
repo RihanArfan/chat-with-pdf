@@ -9,7 +9,7 @@ User message: "${content}"
 
 Provide 5 queries, one per line and nothing else:`
 
-  const response = await hubAI().run('@cf/meta/llama-3.1-8b-instruct', { prompt }) as string // TODO: check it's actually string
+  const { response } = await hubAI().run('@cf/meta/llama-3.1-8b-instruct', { prompt }) as { response: string }
 
   const regex = /^\d+\.\s*"|"$/gm
   const queries = response
@@ -113,19 +113,19 @@ async function getRelevantDocuments(ids: string[]) {
   return relevantDocs
 }
 
-export async function processUserQuery({ sessionId, messages }: { sessionId: string, messages: RoleScopedChatInput[] }, push: (message: string) => Promise<void>) {
+export async function processUserQuery({ sessionId, messages }: { sessionId: string, messages: RoleScopedChatInput[] }, streamResponse: (message: object) => Promise<void>) {
   messages.unshift({ role: 'system', content: SYSTEM_MESSAGE })
   const lastMessage = messages[messages.length - 1]
   const query = lastMessage.content
 
-  await push(`data: {"message": "Rewriting message to queries..."}\n\n`)
+  await streamResponse({ message: 'Rewriting message to queries...' })
 
   const queries = await rewriteToQueries(query)
   const queryingVectorIndexMsg = {
     message: 'Querying vector index and full text search...',
     queries,
   }
-  await push(`data: ${JSON.stringify(queryingVectorIndexMsg)}\n\n`)
+  await streamResponse(queryingVectorIndexMsg)
   consola.debug({ queries })
 
   const [fullTextSearchResults, vectorIndexResults] = await Promise.all([
@@ -139,6 +139,8 @@ export async function processUserQuery({ sessionId, messages }: { sessionId: str
     (a, b) => b.score - a.score,
   )
 
+  console.log(fullTextSearchResults, vectorIndexResults, mergedResults)
+
   const relevantDocs = await getRelevantDocuments(mergedResults.map(r => r.id).slice(0, 10))
 
   const relevantTexts = relevantDocs
@@ -150,7 +152,7 @@ export async function processUserQuery({ sessionId, messages }: { sessionId: str
     relevantContext: relevantDocs,
     queries,
   }
-  await push(`data: ${JSON.stringify(relevantDocsMsg)}\n\n`)
+  await streamResponse(relevantDocsMsg)
 
   messages.push({
     role: 'assistant',

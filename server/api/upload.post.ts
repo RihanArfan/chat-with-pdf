@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
 
     // generate and store vectors for each chunk
     await processVectors(chunks, sessionId, documentId, streamResponse)
-    await streamResponse({ message: 'Inserted vectors' })
+    await streamResponse({ message: 'Inserted vectors', chunks: chunks.length })
 
     eventStream.close()
   })())

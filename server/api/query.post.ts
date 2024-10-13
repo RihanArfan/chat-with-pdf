@@ -13,18 +13,19 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const eventStream = createEventStream(event)
   const { messages, sessionId } = await readValidatedBody(event, schema.parse)
+  const eventStream = createEventStream(event)
+  const streamResponse = (data: object) => eventStream.push(JSON.stringify(data))
 
   event.waitUntil((async () => {
     try {
-      const params = await processUserQuery({ messages, sessionId }, eventStream.push)
+      const params = await processUserQuery({ messages, sessionId }, streamResponse)
       const result = await hubAI().run('@cf/meta/llama-3.1-8b-instruct', { messages: params.messages, stream: true })
       sendStream(event, result as ReadableStream)
     }
     catch (error) {
       consola.error(error)
-      await eventStream.push(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`)
+      await eventStream.push(`${JSON.stringify({ error: (error as Error).message })}`)
       await eventStream.close()
     }
   })())

@@ -1,45 +1,71 @@
-<script setup>
-const runtimeConfig = useRuntimeConfig()
-const colors = ['#f87171', '#fb923c', '#fbbf24', '#facc15', '#a3e635', '#4ade80', '#34d399', '#2dd4bf', '#22d3ee', '#38bdf8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc', '#e879f9', '#f472b6', '#fb7185']
-const color = useState('color', () => colors[Math.floor(Math.random() * colors.length)])
+<script setup lang="ts">
+import type { QueryStreamResponse } from '~/types'
+
+const sessionId = useState<string>('sessionId', () => crypto.randomUUID())
+const informativeMessage = useInformativeMessage()
+const messages = useMessages()
+const documents = useDocuments()
+const isDrawerOpen = ref(false)
+
+async function sendMessage(message: string) {
+  messages.value.push({ role: 'user', content: message })
+
+  const response = useStream<QueryStreamResponse>('/api/query', { messages: messages.value, sessionId: sessionId.value })()
+
+  let responseAdded = false
+  for await (const chunk of response) {
+    if (chunk.message) {
+      informativeMessage.value = chunk.message
+      continue
+    }
+
+    if (chunk.response) {
+      informativeMessage.value = ''
+
+      if (!responseAdded) {
+        messages.value.push({
+          role: 'assistant',
+          content: chunk.response,
+        })
+        responseAdded = true
+      }
+      else {
+        messages.value[messages.value.length - 1]!.content += chunk.response
+      }
+    }
+  }
+}
+
+const isChatEnabled = computed(() => informativeMessage.value === '' && !!documents.value.length)
 </script>
 
 <template>
-  <div class="centered">
-    <h1 :style="{ color }">
-      {{ runtimeConfig.public.helloText }}
-    </h1>
-    <NuxtLink to="/" external>
-      refresh
-    </NuxtLink>
+  <div class="h-dvh flex flex-col md:flex-row max-h-dvh">
+    <!-- <USlideover
+      v-model="isDrawerOpen"
+      :ui="{ content: 'md:hidden' }"
+    >
+      <SideBar @hide-drawer="isDrawerOpen = false" />
+    </USlideover> -->
+
+    <div class="hidden md:block max-w-xs w-full">
+      <SideBar />
+    </div>
+
+    <USeparator orientation="vertical" class="hidden md:block" />
+
+    <div class="w-full h-full flex flex-col bg-zinc-50 dark:bg-zinc-950 ">
+      <ChatHeader @show-drawer="isDrawerOpen = true" />
+      <USeparator />
+
+      <div class="overflow-y-auto h-full">
+        <UContainer class="w-full h-full flex flex-col max-h-full max-w-3xl relative">
+          <ChatMessages :messages />
+
+          <ChatInput class="w-full absolute bottom-0 inset-x-0" :loading="!isChatEnabled" @message="sendMessage" />
+        </UContainer>
+      </div>
+      <UContainer class="max-w-3xl w-full absolute bottom-0 inset-x-0" />
+    </div>
   </div>
 </template>
-
-<style scoped>
-.centered {
-  position: absolute;
-  width: 100%;
-  text-align: center;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-h1 {
-  font-size: 32px;
-}
-@media (min-width: 768px) {
-  h1 {
-    font-size: 64px;
-  }
-}
-a {
-  color: #888;
-  text-decoration: none;
-  font-size: 18px;
-}
-a:hover {
-  text-decoration: underline;
-}
-</style>

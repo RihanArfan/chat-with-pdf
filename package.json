@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.15",
     "@vueuse/core": "^11.1.0",
     "@vueuse/nuxt": "^11.1.0",
     "drizzle-kit": "^0.25.0",
