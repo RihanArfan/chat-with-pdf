@@ -26,7 +26,7 @@ export default defineNuxtConfig({
         dimensions: 1024,
         metric: 'euclidean',
         metadataIndexes: {
-          session_id: 'string',
+          sessionId: 'string',
         },
       },
     },
