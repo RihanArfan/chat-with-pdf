@@ -1,6 +1,7 @@
 {
-  "name": "nuxt-app",
+  "name": "chat-with-pdf",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "nuxt build",
