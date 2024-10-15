@@ -7,6 +7,6 @@ export const useDocuments = () => useState<Document[]>(() => [])
 export const useMessages = () => useState<RoleScopedChatInput[]>('messages', () => [])
 
 export const useQueries = () => useState<string[]>('queries', () => [])
-export const useRelevantContext = () => useState<string[]>('relevantContext', () => [])
+export const useRelevantContext = () => useState<{ isProvided: boolean, context: string[] }>('relevantContext', () => ({ isProvided: false, context: [] }))
 
 export const useInformativeMessage = () => useState<string>('informativeMessage', () => '')

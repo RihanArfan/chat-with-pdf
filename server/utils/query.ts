@@ -1,6 +1,5 @@
 import type { RoleScopedChatInput } from '@cloudflare/workers-types'
 import { inArray, sql } from 'drizzle-orm'
-import consola from 'consola'
 
 async function rewriteToQueries(content: string): Promise<string[]> {
   const prompt = `Given the following user message, rewrite it into 5 distinct queries that could be used to search for relevant information. Each query should focus on different aspects or potential interpretations of the original message. No questions, just a query maximizing the chance of finding relevant information.
@@ -44,7 +43,6 @@ async function searchDocumentChunks(searchTerms: string[]) {
       return results
     }),
   )
-  consola.debug({ fts: results })
 
   return results
     .flat()
@@ -126,7 +124,6 @@ export async function processUserQuery({ sessionId, messages }: { sessionId: str
     queries,
   }
   await streamResponse(queryingVectorIndexMsg)
-  consola.debug({ queries })
 
   const [fullTextSearchResults, vectorIndexResults] = await Promise.all([
     searchDocumentChunks(queries),
@@ -138,8 +135,6 @@ export async function processUserQuery({ sessionId, messages }: { sessionId: str
   const mergedResults = performReciprocalRankFusion(fullTextSearchResults, vectorIndexResults).sort(
     (a, b) => b.score - a.score,
   )
-
-  console.log(fullTextSearchResults, vectorIndexResults, mergedResults)
 
   const relevantDocs = await getRelevantDocuments(mergedResults.map(r => r.id).slice(0, 10))
 

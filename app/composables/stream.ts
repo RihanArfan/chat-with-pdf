@@ -2,7 +2,7 @@
 
 export function useStream<T>(
   endpoint: string,
-  body: Record<string, unknown>,
+  body: Record<string, unknown> | FormData,
 ) {
   async function* response(): AsyncGenerator<T, void, unknown> {
     try {
