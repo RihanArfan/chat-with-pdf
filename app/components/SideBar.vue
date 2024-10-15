@@ -8,7 +8,7 @@ const toast = useToast()
 const documents = useDocuments()
 
 // click to upload
-const { open, onChange } = useFileDialog({
+const { open, onChange, reset } = useFileDialog({
   accept: 'application/pdf',
 })
 onChange(files => uploadFile(files))
@@ -22,16 +22,21 @@ const { isOverDropZone } = useDropZone(dropZoneRef, {
   preventDefaultForUnhandled: true,
 })
 
+const isExampleSession = useIsExampleSession()
+const exampleSessions = useExampleSessions()
+
 // handle upload
 const sessionId = useSessionId()
 async function uploadFile(files: File[] | FileList | null) {
   if (!files) return
-
-  console.log(files)
+  if (isExampleSession.value) {
+    return toast.add({
+      title: 'Example session',
+      description: 'Files cannot be uploaded to example sessions. Reload the page to start a new session.',
+    })
+  }
 
   for (const file of files) {
-    console.log('Starting upload')
-
     const form = new FormData()
     form.append('file', file)
     form.append('sessionId', sessionId.value)
@@ -44,24 +49,40 @@ async function uploadFile(files: File[] | FileList | null) {
     })
     const document = documents.value.find(doc => doc.name === file.name)
 
-    const response = useStream<UploadStreamResponse>('/api/upload', form)()
-    for await (const chunk of response) {
-      if (chunk.message) document!.progress = chunk.message
-      if (chunk.chunks) document!.chunks = chunk.chunks
+    try {
+      const response = useStream<UploadStreamResponse>('/api/upload', form)()
+      for await (const chunk of response) {
+        if (chunk.message) document!.progress = chunk.message
+        if (chunk.chunks) document!.chunks = chunk.chunks
+        if (chunk.error) throw new Error(chunk.error)
+      }
+
+      if (document) delete document.progress // remove progress when done
+
+      toast.add({
+        id: file.name,
+        title: 'File uploaded',
+        description: file.name,
+      })
     }
-
-    // remove progress when done
-    if (document) delete document.progress
-
-    toast.add({
-      id: file.name,
-      title: 'File uploaded',
-      description: file.name,
-    })
+    catch (error) {
+      toast.add({
+        id: file.name,
+        title: 'Error uploading file',
+        // @ts-expect-error unknown error type
+        description: `An error occurred while uploading ${file.name}. ${error?.message}`,
+        color: 'error',
+      })
+      documents.value = documents.value.filter(doc => doc.name !== file.name)
+    }
   }
+  reset()
+}
 
-  // todo: post to /api/upload
-  // todo: handle event stream
+function setExampleSession(exampleSessionId: string) {
+  const { id, ...documentInfo } = exampleSessions.find(example => example.id === exampleSessionId)!
+  documents.value.push(documentInfo)
+  sessionId.value = exampleSessionId
 }
 </script>
 
@@ -85,8 +106,8 @@ async function uploadFile(files: File[] | FileList | null) {
     <div class="p-4 space-y-6 overflow-y-auto flex flex-col">
       <UCard
         ref="dropZoneRef"
-        class="transition-all border-dashed flex flex-grow mb-2 cursor-pointer"
-        :class="{ 'ring-blue-500 ring-offset-2 ring-opacity-50': isOverDropZone }"
+        class="transition-all flex flex-grow mb-2 cursor-pointer hover:ring-emerald-500"
+        :class="{ 'ring-blue-500  ring-opacity-50': isOverDropZone }"
         :ui="{ body: 'flex flex-col items-center justify-center' }"
         @click="open"
       >
@@ -113,7 +134,7 @@ async function uploadFile(files: File[] | FileList | null) {
             &#x2022; {{ document.chunks }} chunks
           </template>
         </p>
-        <div v-if="document.progress" class="mt-0.5 flex items-center px-2 gap-2">
+        <div v-if="document.progress" class="mt-0.5 flex items-center px-1.5 gap-2">
           <LoadingIcon class="size-2" />
           <p class="text-zinc-400 text-xs ">
             {{ document.progress }}
@@ -123,9 +144,18 @@ async function uploadFile(files: File[] | FileList | null) {
         <USeparator v-if="i < documents.length - 1" class="mt-3" />
       </div>
 
-      <p v-if="!documents.length">
-        Upload a document to get started
+      <p v-if="!documents.length" class="text-zinc-700 dark:text-zinc-300">
+        No documents uploaded
       </p>
+
+      <p v-if="!documents.length" class="mt-3">
+        Try an example document:
+      </p>
+      <ul v-if="!documents.length" class="space-y-2 text-xs truncate cursor-pointer text-blue-500">
+        <li v-for="example in exampleSessions" :key="example.id" @click="setExampleSession(example.id)">
+          {{ example.name }}
+        </li>
+      </ul>
     </div>
 
     <USeparator />

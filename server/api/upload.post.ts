@@ -11,7 +11,11 @@ export default defineEventHandler(async (event) => {
   if (!file || !file.size) throw createError({ statusCode: 400, message: 'No file provided' })
   ensureBlob(file, { maxSize: '8MB', types: ['application/pdf'] })
 
-  // TODO: prevent adding files to example sessions
+  // prevent uploading files to example sessions
+  const exampleSessionIds = useExampleSessions()
+  if (exampleSessionIds.some(({ id }) => id === sessionId)) {
+    throw createError({ statusCode: 400, message: 'File uploading unavailable on example sessions' })
+  }
 
   // create stream and return it
   const eventStream = createEventStream(event)

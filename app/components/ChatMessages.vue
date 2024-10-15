@@ -3,6 +3,31 @@ import type { RoleScopedChatInput } from '~/types'
 
 defineProps<{ messages: RoleScopedChatInput[] }>()
 
+// scroll to bottom
+// const chatContainer = useTemplateRef('chatContainer')
+// let observer: MutationObserver | null = null
+
+// onMounted(() => {
+//   if (chatContainer.value) {
+//     observer = new MutationObserver(() => {
+//       if (chatContainer.value) {
+//         chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+//       }
+//     })
+
+//     observer.observe(chatContainer.value, {
+//       childList: true,
+//       subtree: true,
+//       characterData: true,
+//     })
+//   }
+// })
+
+// onUnmounted(() => {
+//   if (observer) {
+//     observer.disconnect()
+//   }
+// })
 
 const informativeMessage = useInformativeMessage()
 const relevantContext = useRelevantContext()
@@ -10,7 +35,7 @@ const queries = useQueries()
 </script>
 
 <template>
-  <div ref="chatContainer" class="flex flex-col p-3 pb-0 space-y-2 h-full">
+  <div class="flex flex-col p-3 pb-0 space-y-2 h-full">
     <template
       v-for="(message, index) in messages"
       :key="`message-${index}`"
@@ -28,6 +53,9 @@ const queries = useQueries()
       <p class="text-sm text-gray-500">
         {{ informativeMessage }}
       </p>
+      <!-- <p class="text-sm text-gray-400">
+        (4.1s)
+      </p> -->
     </div>
 
     <!-- See relevant context -->

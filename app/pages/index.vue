@@ -48,7 +48,12 @@ async function sendMessage(message: string) {
   }
 }
 
-const isChatEnabled = computed(() => informativeMessage.value === '' && !!documents.value.length)
+const uploadedFiles = computed(() => documents.value.filter(doc => !doc.progress))
+const isChatEnabled = computed(() => informativeMessage.value === '' && !!uploadedFiles.value.length)
+
+const isExampleSession = useIsExampleSession()
+const exampleSessions = useExampleSessions()
+const exampleSession = computed(() => exampleSessions.find(session => session.id === sessionId.value))
 </script>
 
 <template>
@@ -74,7 +79,26 @@ const isChatEnabled = computed(() => informativeMessage.value === '' && !!docume
 
       <div class="overflow-y-auto h-full">
         <UContainer class="w-full h-full flex flex-col max-h-full max-w-3xl relative">
-          <ChatMessages :messages />
+          <ChatMessages v-show="!(isExampleSession && !messages.length)" :messages />
+
+          <!-- Example questions -->
+          <div v-if="isExampleSession && !messages.length" class="grid h-full p-3 place-items-center">
+            <div class="">
+              <h2 class="font-medium text-lg">
+                Try some sample questions
+              </h2>
+              <ul class="list-disc pl-4 cursor-pointer">
+                <li
+                  v-for="(question, i) in exampleSession?.questions"
+                  :key="i"
+                  class="hover:underline"
+                  @click="sendMessage(question)"
+                >
+                  {{ question }}
+                </li>
+              </ul>
+            </div>
+          </div>
 
           <ChatInput class="w-full absolute bottom-0 inset-x-0" :loading="!isChatEnabled" @message="sendMessage" />
         </UContainer>
