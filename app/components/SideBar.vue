@@ -33,6 +33,7 @@ async function uploadFile(files: File[] | FileList | null) {
     return toast.add({
       title: 'Example session',
       description: 'Files cannot be uploaded to example sessions. Reload the page to start a new session.',
+      color: 'error',
     })
   }
 
