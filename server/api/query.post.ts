@@ -21,11 +21,13 @@ export default defineEventHandler(async (event) => {
     try {
       const params = await processUserQuery({ messages, sessionId }, streamResponse)
       const result = await hubAI().run('@cf/meta/llama-3.1-8b-instruct', { messages: params.messages, stream: true })
-      sendStream(event, result as ReadableStream)
+      await sendStream(event, result as ReadableStream)
     }
     catch (error) {
       consola.error(error)
-      await eventStream.push(`${JSON.stringify({ error: (error as Error).message })}`)
+      await streamResponse({ error: (error as Error).message })
+    }
+    finally {
       await eventStream.close()
     }
   })())

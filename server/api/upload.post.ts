@@ -23,29 +23,35 @@ export default defineEventHandler(async (event) => {
 
   // prevent worker from being killed while processing
   event.waitUntil((async () => {
-    // upload file, extract text, and insert document
-    const [r2Url, textContent] = await Promise.all([
-      uploadPDF(file, sessionId),
-      extractTextFromPDF(file),
-    ])
-    await streamResponse({ message: 'Extracted text from PDF' })
+    try {
+      // upload file, extract text, and insert document
+      const [r2Url, textContent] = await Promise.all([
+        uploadPDF(file, sessionId),
+        extractTextFromPDF(file),
+      ])
+      await streamResponse({ message: 'Extracted text from PDF' })
 
-    const insertResult = await insertDocument(file, textContent, sessionId, r2Url)
-    const documentId = insertResult[0].insertedId
+      const insertResult = await insertDocument(file, textContent, sessionId, r2Url)
+      const documentId = insertResult[0].insertedId
 
-    // split text into chunks
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 500,
-      chunkOverlap: 100,
-    })
-    const chunks = await splitter.splitText(textContent)
-    await streamResponse({ message: 'Split text into chunks' })
+      // split text into chunks
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 500,
+        chunkOverlap: 100,
+      })
+      const chunks = await splitter.splitText(textContent)
+      await streamResponse({ message: 'Split text into chunks' })
 
-    // generate and store vectors for each chunk
-    await processVectors(chunks, sessionId, documentId, streamResponse)
-    await streamResponse({ message: 'Inserted vectors', chunks: chunks.length })
-
-    eventStream.close()
+      // generate and store vectors for each chunk
+      await processVectors(chunks, sessionId, documentId, streamResponse)
+      await streamResponse({ message: 'Inserted vectors', chunks: chunks.length })
+    }
+    catch (error) {
+      await streamResponse({ error: (error as Error).message })
+    }
+    finally {
+      eventStream.close()
+    }
   })())
 
   return eventStream.send()

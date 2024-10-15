@@ -9,6 +9,8 @@ const queries = useQueries()
 const relevantContext = useRelevantContext()
 const isDrawerOpen = ref(false)
 
+const toast = useToast()
+
 async function sendMessage(message: string) {
   messages.value.push({ role: 'user', content: message })
   relevantContext.value.isProvided = false
@@ -27,8 +29,17 @@ async function sendMessage(message: string) {
     }
 
     if (chunk.relevantContext) {
-      relevantContext.value.context = chunk.relevantContext
+      relevantContext.value.context = chunk.relevantContext.map(context => context.text)
       relevantContext.value.isProvided = true
+    }
+
+    if (chunk.error) {
+      informativeMessage.value = chunk.error
+      toast.add({
+        title: 'Error',
+        description: chunk.error,
+        color: 'error',
+      })
     }
 
     if (chunk.response) {
