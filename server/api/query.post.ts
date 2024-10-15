@@ -20,8 +20,12 @@ export default defineEventHandler(async (event) => {
   event.waitUntil((async () => {
     try {
       const params = await processUserQuery({ messages, sessionId }, streamResponse)
-      const result = await hubAI().run('@cf/meta/llama-3.1-8b-instruct', { messages: params.messages, stream: true })
-      await sendStream(event, result as ReadableStream)
+      const result = await hubAI().run('@cf/meta/llama-3.1-8b-instruct', { messages: params.messages, stream: true }) as ReadableStream
+      for await (const chunk of result) {
+        // Send ReadableStream to client using existing stream. Calling sendStream() doesn't work when deployed.
+        const chunkString = new TextDecoder().decode(chunk).slice(5) // remove data: prefix
+        await eventStream.push(chunkString)
+      }
     }
     catch (error) {
       consola.error(error)
