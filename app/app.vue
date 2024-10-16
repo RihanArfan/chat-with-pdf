@@ -9,7 +9,7 @@ useSeoMeta({
   ogTitle: 'Chat with PDF',
   ogDescription: 'Chat with PDF is a full-stack AI-powered application that lets you to ask questions to PDF documents. Built using NuxtHub, and powered by Cloudflare Workers AI and Vectorize.',
   description: 'Chat with PDF is a full-stack AI-powered application that lets you to ask questions to PDF documents. Built using NuxtHub, and powered by Cloudflare Workers AI and Vectorize.',
-  ogImage: '/image.png',
+  ogImage: 'https://chat-with-pdf.nuxt.dev/image.png',
   twitterCard: 'summary_large_image',
 })
 </script>
