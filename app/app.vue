@@ -6,10 +6,10 @@ useHead({
 })
 useSeoMeta({
   title: 'Chat with PDF',
-  ogTitle: 'Chat with your PDF documents',
-  description:
-    'Chat with PDF lets you ask questions to PDFs. Built using NuxtHub and Nuxt UI.',
-  ogImage: '', // TODO:
+  ogTitle: 'Chat with PDF',
+  ogDescription: 'Chat with PDF is a full-stack AI-powered application that lets you to ask questions to PDF documents. Built using NuxtHub, and powered by Cloudflare Workers AI and Vectorize.',
+  description: 'Chat with PDF is a full-stack AI-powered application that lets you to ask questions to PDF documents. Built using NuxtHub, and powered by Cloudflare Workers AI and Vectorize.',
+  ogImage: '/image.png',
   twitterCard: 'summary_large_image',
 })
 </script>
